@@ -1,5 +1,5 @@
 class PropertiesController < ApplicationController
-  
+
   layout 'new_layout', :only => [:login]
   before_action :set_property, only: [:show, :edit, :update, :destroy]
 
@@ -18,7 +18,7 @@ class PropertiesController < ApplicationController
   end
 
   def search
-    @properties = Property.properties.search_data(params[:search]).paginate(:page => params[:page], :per_page => 10)
+    @properties = Property.properties.search_data(params[:search])
     redirected_to welcome_search_path(params.merge(params[:search]))
   end
 
@@ -37,7 +37,7 @@ class PropertiesController < ApplicationController
   end
 
   def get_in_touch
-    
+
   end
 
   # GET /properties/1/edit
@@ -47,15 +47,19 @@ class PropertiesController < ApplicationController
   # POST /properties
   # POST /properties.json
   def create
-    @property = current_user.properties.build(property_params)
-
-    respond_to do |format|
-      if @property.save
-        format.html { redirect_to welcome_index_path, notice: 'Property was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @property }
-      else
-        format.html { render action: 'new' }
-        format.json { render json: @property.errors, status: :unprocessable_entity }
+    if params[:search].present?
+      @properties = Property.search_data(params[:search])
+      redirect_to properties_path(params[:search])
+    else
+      @property = current_user.properties.build(property_params)
+      respond_to do |format|
+        if @property.save
+          format.html { redirect_to welcome_index_path, notice: 'Property was successfully created.' }
+          format.json { render action: 'show', status: :created, location: @property }
+        else
+          format.html { render action: 'new' }
+          format.json { render json: @property.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -94,6 +98,6 @@ class PropertiesController < ApplicationController
     def property_params
       params.require(:property).permit(:photo, :project, :area, :city, :posted_at, :price, :size, :to_do,
        :contact, :professional_type, :data_available, :amenities, :name, :company,
-       :email, :phone, :price_text, :comment_title, :comments, :floor,:image)
+       :email, :phone, :price_text, :comment_title, :comments, :floor,:image, :property_type)
     end
 end
